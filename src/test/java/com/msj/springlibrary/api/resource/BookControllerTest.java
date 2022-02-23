@@ -1,12 +1,18 @@
 package com.msj.springlibrary.api.resource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.msj.springlibrary.api.dto.BookDTO;
+import com.msj.springlibrary.model.Book;
+import com.msj.springlibrary.service.BookService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.BDDMockito;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -26,11 +32,23 @@ public class BookControllerTest {
     @Autowired
     private MockMvc mvc;
 
+    @MockBean
+    BookService bookService;
+
     @Test
     @DisplayName("Deve criar um livro com sucesso")
     public void createBook() throws Exception{
 
-        String json = new ObjectMapper().writeValueAsString(null);
+        //Representa o Json que é passado na requisição post
+        BookDTO dto = BookDTO.builder().author("Mateus").title("Teste em JUnit").isbn("JU5").build();
+
+        //Simula o retorno do book salvo
+        Book book = Book.builder().id(1l).author("Mateus").title("Teste em JUnit").isbn("JU5").build();
+
+        // Save na entidade book e retorna o valor que foi salvo com sucesso.
+        BDDMockito.given(bookService.save(Mockito.any(Book.class))).willReturn(book);
+
+        String json = new ObjectMapper().writeValueAsString(dto);
 
         // Cria a requisição post, setando um json no conteudo da request
 
@@ -45,10 +63,10 @@ public class BookControllerTest {
         mvc
                 .perform(requestBuilder)
                 .andExpect(MockMvcResultMatchers.status().isCreated()) //status da requisição: 201 Created
-                .andExpect(MockMvcResultMatchers.jsonPath("id").isNotEmpty()) // Espero um id não vazio
-                .andExpect(MockMvcResultMatchers.jsonPath("title").value("My Book"))
-                .andExpect(MockMvcResultMatchers.jsonPath("author").value("author"))
-                .andExpect(MockMvcResultMatchers.jsonPath("isbn").value("CCO-885"));
+                .andExpect(MockMvcResultMatchers.jsonPath("id").value(1l)) // Espero um id não vazio
+                .andExpect(MockMvcResultMatchers.jsonPath("title").value(dto.getTitle()))
+                .andExpect(MockMvcResultMatchers.jsonPath("author").value(dto.getAuthor()))
+                .andExpect(MockMvcResultMatchers.jsonPath("isbn").value(dto.getIsbn()));
 
     }
 

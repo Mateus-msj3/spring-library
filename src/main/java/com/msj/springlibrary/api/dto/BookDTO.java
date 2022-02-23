@@ -1,10 +1,12 @@
 package com.msj.springlibrary.api.dto;
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 @Getter
 @Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class BookDTO {
 
     private Long id;

@@ -1,8 +1,8 @@
 package com.msj.springlibrary.api.resource;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.msj.springlibrary.api.dto.BookDTO;
+import com.msj.springlibrary.exception.BusinessException;
 import com.msj.springlibrary.model.Book;
 import com.msj.springlibrary.service.BookService;
 import org.hamcrest.Matchers;
@@ -37,12 +37,16 @@ public class BookControllerTest {
     @MockBean
     BookService bookService;
 
+    public BookDTO createNewBook() {
+        return BookDTO.builder().author("Mateus").title("Teste em JUnit").isbn("JU5").build();
+    }
+
     @Test
     @DisplayName("Deve criar um livro com sucesso")
     public void createBook() throws Exception{
 
         //Representa o Json que é passado na requisição post
-        BookDTO dto = BookDTO.builder().author("Mateus").title("Teste em JUnit").isbn("JU5").build();
+        BookDTO dto = createNewBook();
 
         //Simula o retorno do book salvo
         Book book = Book.builder().id(1l).author("Mateus").title("Teste em JUnit").isbn("JU5").build();
@@ -89,4 +93,32 @@ public class BookControllerTest {
                 .andExpect(MockMvcResultMatchers.status().isBadRequest())
                 .andExpect(MockMvcResultMatchers.jsonPath("errors", Matchers.hasSize(3)));
     }
+
+    @Test
+    @DisplayName("Deve lançar erro ao tentar cadastrar um livro com isbn já cadastrado.")
+    public void createBookWithDuplicatedIsbn() throws Exception{
+
+        BookDTO dto = createNewBook();
+
+        String json = new ObjectMapper().writeValueAsString(dto);
+
+        String messageError = "Isbn já cadastrado.";
+
+        BDDMockito.given(bookService.save(Mockito.any(Book.class)))
+                .willThrow(new BusinessException(messageError));
+
+        // Cria a requisição post, setando um json no conteudo da request
+
+        MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders
+                .post(BOOK_API)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(json);
+
+        mvc.perform(requestBuilder)
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("errors", Matchers.hasSize(1)))
+                .andExpect(MockMvcResultMatchers.jsonPath("errors[0]").value(messageError));
+    }
+
 }

@@ -2,6 +2,7 @@ package com.msj.springlibrary.api.resource;
 
 import com.msj.springlibrary.api.dto.BookDTO;
 import com.msj.springlibrary.api.exception.ApiErrors;
+import com.msj.springlibrary.exception.BusinessException;
 import com.msj.springlibrary.model.Book;
 import com.msj.springlibrary.service.BookService;
 import org.modelmapper.ModelMapper;
@@ -46,5 +47,12 @@ public class BookController {
         BindingResult bindingResult = exception.getBindingResult();
 
         return new ApiErrors(bindingResult);
+    }
+
+    @ExceptionHandler(BusinessException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiErrors handleBusinessException(BusinessException exception) {
+
+        return new ApiErrors(exception);
     }
 }

@@ -1,9 +1,11 @@
 package com.msj.springlibrary.api.resource;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.msj.springlibrary.api.dto.BookDTO;
 import com.msj.springlibrary.model.Book;
 import com.msj.springlibrary.service.BookService;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -60,8 +62,7 @@ public class BookControllerTest {
 
         // Assertivas dos testes, passando o que espero receber como resposta
 
-        mvc
-                .perform(requestBuilder)
+        mvc.perform(requestBuilder)
                 .andExpect(MockMvcResultMatchers.status().isCreated()) //status da requisição: 201 Created
                 .andExpect(MockMvcResultMatchers.jsonPath("id").value(1l)) // Espero um id não vazio
                 .andExpect(MockMvcResultMatchers.jsonPath("title").value(dto.getTitle()))
@@ -72,7 +73,20 @@ public class BookControllerTest {
 
     @Test
     @DisplayName("Deve lançar erro de validação quando não houver dados suficientes para criação do livro")
-    public void createInvalidBook() {
+    public void createInvalidBook() throws Exception {
 
+        String json = new ObjectMapper().writeValueAsString(new BookDTO());
+
+        // Cria a requisição post, setando um json no conteudo da request
+
+        MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders
+                .post(BOOK_API)
+                .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
+                .content(json);
+
+        mvc.perform(requestBuilder)
+                .andExpect(MockMvcResultMatchers.status().isBadRequest())
+                .andExpect(MockMvcResultMatchers.jsonPath("errors", Matchers.hasSize(3)));
     }
 }

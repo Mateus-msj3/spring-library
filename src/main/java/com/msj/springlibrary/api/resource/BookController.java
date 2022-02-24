@@ -18,6 +18,11 @@ public class BookController {
     @Autowired
     private ModelMapper modelMapper;
 
+//    public BookController(BookService bookService, ModelMapper modelMapper) {
+//        this.bookService = bookService;
+//        this.modelMapper = modelMapper;
+//    }
+
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public BookDTO createBook(@RequestBody BookDTO bookDTO) {

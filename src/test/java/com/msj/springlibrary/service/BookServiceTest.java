@@ -1,5 +1,6 @@
 package com.msj.springlibrary.service;
 
+import com.msj.springlibrary.exception.BusinessException;
 import com.msj.springlibrary.model.Book;
 import com.msj.springlibrary.repository.BookRepository;
 import com.msj.springlibrary.service.Impl.BookServiceImpl;
@@ -33,7 +34,8 @@ public class BookServiceTest {
     public void saveBookTest() {
 
         //cenario
-        Book book = Book.builder().author("Mateus").title("Teste JUnit").isbn("JSA-1").build();
+        Book book = createValidBook();
+        Mockito.when(bookRepository.existsByIsbn(Mockito.anyString())).thenReturn(false);
         Mockito.when(bookRepository.save(book))
                 .thenReturn(Book.builder()
                         .id(1l)
@@ -41,6 +43,7 @@ public class BookServiceTest {
                         .title("Teste JUnit")
                         .isbn("JSA-1")
                         .build());
+
         //execucao
         Book savedBook = bookService.save(book);
 
@@ -49,6 +52,30 @@ public class BookServiceTest {
         Assertions.assertThat(savedBook.getAuthor()).isEqualTo("Mateus");
         Assertions.assertThat(savedBook.getTitle()).isEqualTo("Teste JUnit");
         Assertions.assertThat(savedBook.getIsbn()).isEqualTo("JSA-1");
+    }
+
+    private Book createValidBook() {
+        return Book.builder().isbn("JSA-1").author("Mateus").title("Teste JUnit").build();
+    }
+
+
+    @Test
+    @DisplayName("Deve lançar erro de negocio ao tentar salvar um livro já cadastrado")
+    public void shouldNotSaveABookWuthDuplicateISBN() {
+
+        //cenário
+        Book book = createValidBook();
+        Mockito.when(bookRepository.existsByIsbn(Mockito.anyString())).thenReturn(true);
+
+        //execução
+        Throwable exception = Assertions.catchThrowable(() -> bookService.save(book));
+
+        //verificações
+        Assertions.assertThat(exception)
+                .isInstanceOf(BusinessException.class)
+                .hasMessage("Isbn já cadastrado");
+
+        Mockito.verify(bookRepository, Mockito.never()).save(book);
     }
 
 

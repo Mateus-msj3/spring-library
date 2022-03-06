@@ -4,6 +4,7 @@ import com.msj.springlibrary.exception.BusinessException;
 import com.msj.springlibrary.model.Book;
 import com.msj.springlibrary.repository.BookRepository;
 import com.msj.springlibrary.service.Impl.BookServiceImpl;
+import org.aspectj.weaver.NewConstructorTypeMunger;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -120,5 +121,73 @@ public class BookServiceTest {
 
     }
 
+    @Test
+    @DisplayName("Deve deletar um livro")
+    public void deleteBookTest() {
 
- }
+        //cenario
+        Book book = Book.builder().id(1l).build();
+
+        //execução
+        org.junit.jupiter.api.Assertions.assertDoesNotThrow(() ->  bookService.delete(book));
+
+        // verificações
+       Mockito.verify(bookRepository, Mockito.times(1)).delete(book);
+
+    }
+
+    @Test
+    @DisplayName("Deve ocorrer um erro deletar um livro sem id")
+    public void deleteInvalidBookTest() {
+
+        //cenario
+        Book book = new Book();
+
+        //execução
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () ->  bookService.delete(book));
+
+        // verificações
+        Mockito.verify(bookRepository, Mockito.never()).delete(book);
+
+    }
+
+    @Test
+    @DisplayName("Deve atualizar um livro")
+    public void updateBookTest() {
+
+        //cenario
+        long id = 1l;
+        Book updatingBook = Book.builder().id(id).build();
+
+        Book updatedBook = createValidBook();
+        updatedBook.setId(id);
+        Mockito.when(bookRepository.save(updatingBook)).thenReturn(updatedBook);
+
+        //execução
+       Book book = bookService.update(updatingBook);
+
+        // verificações
+        Assertions.assertThat(book.getId()).isEqualTo(id);
+        Assertions.assertThat(book.getAuthor()).isEqualTo(book.getAuthor());
+        Assertions.assertThat(book.getTitle()).isEqualTo(book.getTitle());
+        Assertions.assertThat(book.getIsbn()).isEqualTo(book.getIsbn());
+
+    }
+
+    @Test
+    @DisplayName("Deve ocorrer um erro ao atualizar um livro sem id")
+    public void updateInvalidBookTest() {
+
+        //cenario
+        Book book = new Book();
+
+        //execução
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class, () ->  bookService.delete(book));
+
+        // verificações
+        Mockito.verify(bookRepository, Mockito.never()).save(book);
+
+    }
+
+
+}

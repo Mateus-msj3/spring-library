@@ -180,17 +180,17 @@ public class BookControllerTest {
         Long id = 1l;
         String json = new ObjectMapper().writeValueAsString(createNewBook());
 
-        Book updatingBook = Book.builder().id(1l)
+        Book updatingBook = Book.builder().id(id)
                 .title("some title")
                 .author("some author")
-                .isbn("321")
+                .isbn("JU5")
                 .build();
 
         BDDMockito.given(bookService.getById(id))
                 .willReturn(Optional.of(updatingBook));
 
-        BDDMockito.given(bookService.update(updatingBook)).willReturn(Book.builder().author("Mateus").title("Teste em JUnit").isbn("JU5").build());
-
+        Book updatedBook = Book.builder().id(id).author("Mateus").title("Teste em JUnit").isbn("JU5").build();
+        BDDMockito.given(bookService.update(updatingBook)).willReturn(updatedBook);
         //execução
         MockHttpServletRequestBuilder requestBuilder = MockMvcRequestBuilders
                 .put(BOOK_API.concat("/" + 1))
@@ -204,7 +204,7 @@ public class BookControllerTest {
                 .andExpect(MockMvcResultMatchers.jsonPath("id").value(id))
                 .andExpect(MockMvcResultMatchers.jsonPath("title").value(createNewBook().getTitle()))
                 .andExpect(MockMvcResultMatchers.jsonPath("author").value(createNewBook().getAuthor()))
-                .andExpect(MockMvcResultMatchers.jsonPath("isbn").value(createNewBook().getIsbn()));
+                .andExpect(MockMvcResultMatchers.jsonPath("isbn").value("JU5"));
 
     }
 

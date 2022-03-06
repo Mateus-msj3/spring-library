@@ -14,6 +14,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.Optional;
+
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
 public class BookServiceTest {
@@ -76,6 +78,46 @@ public class BookServiceTest {
                 .hasMessage("Isbn já cadastrado");
 
         Mockito.verify(bookRepository, Mockito.never()).save(book);
+    }
+
+    @Test
+    @DisplayName("Deve obter um livro por id")
+    public void getByIdTest() {
+
+        //cenario
+        Long id = 1l;
+        Book book = createValidBook();
+        book.setId(id);
+        Mockito.when(bookRepository.findById(id)).thenReturn(Optional.of(book));
+
+        //execução
+        Optional<Book> foundBook = bookService.getById(id);
+
+        //verificações
+        Assertions.assertThat(foundBook.isPresent()).isTrue();
+        Assertions.assertThat(foundBook.get().getId()).isEqualTo(id);
+        Assertions.assertThat(foundBook.get().getAuthor()).isEqualTo(book.getAuthor());
+        Assertions.assertThat(foundBook.get().getTitle()).isEqualTo(book.getTitle());
+        Assertions.assertThat(foundBook.get().getIsbn()).isEqualTo(book.getIsbn());
+
+    }
+
+
+    @Test
+    @DisplayName("Deve retornar vazio quandop não encontar o id do livro")
+    public void bookNotFoundByIdTest() {
+
+        //cenario
+        Long id = 1l;
+
+        Mockito.when(bookRepository.findById(id)).thenReturn(Optional.empty());
+
+        //execução
+        Optional<Book> book = bookService.getById(id);
+
+        //verificações
+        Assertions.assertThat(book.isPresent()).isFalse();
+
     }
 
 
